@@ -1,0 +1,6 @@
+name:LungCancer
+
+random_variables:S(Smoking);Yf(Yellow_Fingers);An(Anxiety);Pp(Peer_Pressure);G(Genetics);Ad(Attention_Disorder);Bd(Born_an_Even_Day);Ca(Car_Accident);F(Fatigue);A(Allergy);C(Coughing);L(Lung_cancer)
+
+structure:P(Smoking|Lung_cancer);P(Yellow_Fingers|Lung_cancer);P(Anxiety|Lung_cancer);P(Peer_Pressure|Lung_cancer);P(Genetics|Lung_cancer);P(Attention_Disorder|Lung_cancer);P(Born_an_Even_Day|Lung_cancer);P(Car_Accident|Lung_cancer);P(Fatigue|Lung_cancer);P(Allergy|Lung_cancer);P(Coughing|Lung_cancer);P(Lung_cancer)
+

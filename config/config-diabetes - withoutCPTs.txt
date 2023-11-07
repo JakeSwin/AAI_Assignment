@@ -1,0 +1,5 @@
+name:Diabetes
+
+random_variables:P(Pregnancies);G(Glucose);BP(BloodPressure);ST(SkinThickness);I(Insulin);BMI(BMI);DPF(DiabetesPedigreeFunction);A(Age);O(Outcome)
+
+structure:P(Pregnancies);P(Glucose);P(BloodPressure);P(SkinThickness);P(Insulin);P(BMI);P(DiabetesPedigreeFunction);P(Age);P(Outcome)
