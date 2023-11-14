@@ -61,6 +61,7 @@ class NBClassifier:
             for row in datareader:
                 if len(self.rand_vars) == 0:
                     self.rand_vars = row
+                    self.rand_vars[0] = self.rand_vars[0].replace('ï»¿', '')
                     self.rv_key_values = {k: [] for k in self.rand_vars}
                 else:
                     self.rv_all_values.append(row)
