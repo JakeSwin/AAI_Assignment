@@ -44,6 +44,8 @@ class BayesNetInference(BayesNetReader):
 
     def __init__(self, alg_name, file_name, prob_query, num_samples):
         super().__init__(file_name)
+        if alg_name is None or prob_query is None or num_samples is None:
+            return
         self.query = tokenise_query(prob_query)
 
         start = time.time()
@@ -83,7 +85,7 @@ class BayesNetInference(BayesNetReader):
 
         for value, probability in Q.items():
             value = value.split('|')[0]
-            variables = self.bn["random_variables"].copy()
+            variables = [x.split("P(")[1].split(")")[0].split("|")[0] for x in self.bn["structure"]]
             evidence = self.query["evidence"].copy()
             evidence[self.query["query_var"]] = value
             probability = self.enumerate_all(variables, evidence)
@@ -185,7 +187,7 @@ class BayesNetInference(BayesNetReader):
             event = evidence.copy()
             weight = 1
             target = None
-            for var in self.bn["random_variables"]:
+            for var in [x.split("P(")[1].split(")")[0].split("|")[0] for x in self.bn["structure"]]:
                 if var in event:
                     p = get_probability_given_parents(var, event[var], event, self.bn)
                     weight = weight * p
@@ -206,7 +208,7 @@ class BayesNetInference(BayesNetReader):
 
         # iterates over the set of random variables as specified in the
         # config file of the Bayes net, in the order from left to right
-        for variable in self.bn["random_variables"]:
+        for variable in [x.split("P(")[1].split(")")[0].split("|")[0] for x in self.bn["structure"]]:
             X[variable] = self.get_sampled_value(variable, sampled_var_values)
             sampled_var_values[variable] = X[variable]
             if variable in evidence and evidence[variable] != X[variable]:

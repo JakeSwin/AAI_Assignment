@@ -27,7 +27,7 @@ class ConditionalIndependence:
     chisq_obj = None
     rand_vars = []
     rv_all_values = []
-    chi_square_test = True
+    chi_square_test = False
 
     def __init__(self, file_name):
         data = self.read_data(file_name)

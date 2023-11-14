@@ -25,13 +25,15 @@ import torch
 import gpytorch
 import numpy as np
 import GPy
-from george import kernels
 from scipy.optimize import minimize
 from gaussian_processes_util import plot_gp
 from gaussian_processes_util import nll_fn
 from gaussian_processes_util import posterior
 from sklearn import metrics
+from sklearn.gaussian_process.kernels import RBF, DotProduct, WhiteKernel
+from sklearn.gaussian_process import GaussianProcessRegressor
 from ModelEvaluator import ModelEvaluator
+from george import kernels
 
 
 class ExactGPModel(gpytorch.models.ExactGP):
@@ -56,21 +58,28 @@ class GaussianProcess:
 
     def __init__(self, implementation, datafile_train, datafile_test):
         # Load training and test data from two separate CVS files
-        X_train, Y_train = self.load_csv_file(datafile_train)
-        X_test, Y_test = self.load_csv_file(datafile_test)
+        self.implementation = implementation
+        train_data = np.loadtxt(datafile_train, delimiter=',', skiprows=1, max_rows=5000)
+        X_train, Y_train = np.split(train_data, [train_data.shape[1] - 1], axis=1)
+        test_data = np.loadtxt(datafile_test, delimiter=',', skiprows=1)
+        X_test, Y_test = np.split(test_data, [test_data.shape[1] - 1], axis=1)
+        # X_train, Y_train = self.load_csv_file(datafile_train)
+        # X_test, Y_test = self.load_csv_file(datafile_test)
 
         # train GP model via regression and evaluate it with test data
         self.running_time = time.time()
-        if implementation == "GPy":
-            self.m = GPy.models.GPRegression(X_train, Y_train)
-            self.mu = self.m.posterior.mean
-            self.cov = self.m.posterior.covariance
-        if implementation == "george":
-            # TODO fix this
-            kernel = np.var(Y_train) * kernels.ExpSquaredKernel(0.5)
-            self.gp = george.GP(kernel)
-            self.gp.compute(X_train, Y_train)
-        if implementation == "gpytorch":
+        if self.implementation == "sklearn":
+            kernel1 = 1.0 * RBF(length_scale=1.0)
+            kernel2 = DotProduct() + WhiteKernel()
+            self.gp_skl = GaussianProcessRegressor(kernel=kernel2, n_restarts_optimizer=10).fit(X_train, Y_train)
+            self.mu, self.cov = self.gp_skl.predict(X_test, return_cov=True)
+        elif self.implementation == "george":
+            kernel = np.var(Y_train) * kernels.ExpSquaredKernel(1.0)
+            yerr = 0.1 * np.ones_like(X_train)
+            gp_basic = george.GP(kernel)
+            gp_basic.compute(X_train)
+            print(gp_basic.log_likelihood(Y_train))
+        elif self.implementation == "gpytorch":
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self.likelihood = gpytorch.likelihoods.GaussianLikelihood()
             tensor_train_x = torch.tensor(X_train, dtype=torch.float32, device=self.device)
@@ -81,9 +90,9 @@ class GaussianProcess:
                 likelihood=self.likelihood)
             self.m.train()
             self.likelihood.train()
-            optimizer = torch.optim.Adam(self.m.parameters(), lr=0.1)
+            optimizer = torch.optim.Adam(self.m.parameters(), lr=0.12)
             mll = gpytorch.mlls.ExactMarginalLogLikelihood(self.likelihood, self.m)
-            for i in range(50):
+            for i in range(200):
                 optimizer.zero_grad()
                 out = self.m(tensor_train_x)
                 losses = -mll(out, tensor_train_y)

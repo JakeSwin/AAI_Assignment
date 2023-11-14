@@ -17,6 +17,7 @@
 #############################################################################
 
 import sys
+import time
 from BayesNetReader import BayesNetReader
 from NBClassifier import NBClassifier
 
@@ -34,8 +35,11 @@ class CPT_Generator(BayesNetReader, NBClassifier):
         self.bn = BayesNetReader(configfile_name)
         self.nbc = NBClassifier(None)
         self.nbc.read_data(datafile_name)
+        start = time.time()
         self.generate_prior_and_conditional_countings()
         self.generate_probabilities_from_countings()
+        end = time.time()
+        print('Execution Time: {}'.format(end - start))
         self.write_CPTs_to_configuration_file()
 
     def generate_prior_and_conditional_countings(self):
@@ -217,12 +221,12 @@ class CPT_Generator(BayesNetReader, NBClassifier):
                 cfg_file.write('\n')
 
 
-if len(sys.argv) != 3:
-    print("USAGE: CPT_Generator.py [your_config_file.txt] [training_file.csv]")
-    print("EXAMPLE> CPT_Generator.py config-playtennis.txt play_tennis-train.csv")
-    exit(0)
-
-else:
-    configfile_name = sys.argv[1]
-    datafile_name = sys.argv[2]
-    CPT_Generator(configfile_name, datafile_name)
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("USAGE: CPT_Generator.py [your_config_file.txt] [training_file.csv]")
+        print("EXAMPLE> CPT_Generator.py config-playtennis.txt play_tennis-train.csv")
+        exit(0)
+    else:
+        configfile_name = sys.argv[1]
+        datafile_name = sys.argv[2]
+        CPT_Generator(configfile_name, datafile_name)

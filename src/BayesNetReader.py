@@ -33,6 +33,7 @@ class BayesNetReader:
             value = None
             for line in cfg_file:
                 line = line.strip()
+                line = line.replace('ï»¿', '')
                 if len(line) == 0:
                     continue
 
@@ -56,7 +57,8 @@ class BayesNetReader:
         rv_key_values = {}
 
         for key, values in self.bn.items():
-
+            if type(values) is dict:
+                continue
             if key == "random_variables":
                 var_set = []
                 for value in values.split(";"):
